@@ -1,158 +1,124 @@
 <?php
-include("../conn/conn.php");
-include("../f.php");
-include("../enye.php");
+include("conn.php");
+include("f.php");
 ini_set('max_execution_time', 0);
 $mun = $_GET["mun"];
+$brgy = $_GET["brgy"];
 include("rep_header.php");
-?>
-<h1><?php echo $mun; ?></h1>
 
-<?php
-$brgys = get_array("SELECT barangay FROM v_info INNER JOIN barangays ON barangays.id = v_info.barangayId WHERE municipality = '$mun' GROUP BY barangay");
-?>
-<table class="table table-bordered">
-    <thead>
-        <th>#</th>
-        <th>Barangay</th>
-        <th>Voters</th>
-        <th>BOSSTE</th>
-        <th>ASANZA</th>
-        <th>RODRIGUEZ</th>
-        <th>LAYNES</th>
-        <th>ALBERTO</th>
-        <?php
-        if ($mun == "VIRAC") {
-            ?>
-            <th>GOVCUA</th>
-            <th>POSOY</th>
-            <?php
-        }
+
+$r = get_array("SELECT 
+    leader_v_id,
+    v_lname,
+    v_fname,
+    v_mname,
+    purok_st,
+    CASE
+        WHEN type = 1 THEN 'WL'
+        WHEN type = 2 THEN 'BC'
+        WHEN type = 3 THEN 'DC'
+        WHEN type = 4 THEN 'MC'
+    END AS leader_type
+FROM
+    head_household
+        INNER JOIN
+    v_info ON v_info.v_id = head_household.leader_v_id
+        INNER JOIN
+    barangays ON barangays.id = v_info.barangayId
+        INNER JOIN
+    leaders ON leaders.v_id = head_household.leader_v_id
+WHERE
+    municipality = '$mun'
+        AND barangay = '$brgy'
+GROUP BY leader_v_id ORDER BY v_lname, v_fname");
+$cnt = 1;
+foreach ($r as $key => $leader) {
+    $leader_id = $leader[0];
+    $leader_type = $leader[5];
+    $leader_name = $leader[1] . ', ' . $leader[2] . ' ' . $leader[3];
+    ?>
+    <h3 class="text-center"><strong><?php echo $leader_name; ?></strong> [<?php echo $leader_type; ?>]<br><i
+            style="font-size: 12px;"><?php echo $brgy . ',' . $mun; ?></i></h3>
+
+    <?php
+    $households = get_array("SELECT fh_v_id, fh_v_id as vid, purok_st, v_lname, v_fname, v_mname, 
+    (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '55' and v_id = vid ORDER BY v_remarks_id DESC LIMIT 1) as cong, 
+    (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '56' and v_id = vid ORDER BY v_remarks_id DESC LIMIT 1) as gov, 
+    (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '57' and v_id = vid ORDER BY v_remarks_id DESC LIMIT 1) as vgov 
+    FROM head_household INNER JOIN v_info ON v_info.v_id = head_household.fh_v_id WHERE leader_v_id = '$leader_id' GROUP BY head_household.fh_v_id ORDER BY purok_st ASC");
+
+    foreach ($households as $key => $household) {
+        $hhid = $household[0];
+        $hhfullname = $household["v_lname"] . ', ' . $household["v_fname"] . ' ' . $household["v_mname"];
+
+        $members = get_array("SELECT mem_v_id, v_lname, v_fname, v_mname, 
+    (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '55' and v_id = mem_v_id ORDER BY v_remarks_id DESC LIMIT 1) as cong, 
+    (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '56' and v_id = mem_v_id ORDER BY v_remarks_id DESC LIMIT 1) as gov, 
+    (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '57' and v_id = mem_v_id ORDER BY v_remarks_id DESC LIMIT 1) as vgov 
+    FROM household_warding INNER JOIN v_info ON v_info.v_id = household_warding.mem_v_id WHERE fh_v_id = '$hhid' GROUP BY household_warding.mem_v_id  ORDER BY v_lname, v_fname, v_mname ");
         ?>
 
-    </thead>
-    <tbody>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Family Head</th>
+                    <th>Purok/St</th>
+                    <th>Congressman</th>
+                    <th>Governor</th>
+                    <th>Vice-Governor</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong><?php echo $key + 1; ?>.</strong> <?php echo $hhfullname; ?></td>
+                    <td><?php echo $household["purok_st"]; ?></td>
+                    <td><?php echo $household["cong"]; ?></td>
+                    <td><?php echo $household["gov"]; ?></td>
+                    <td><?php echo $household["vgov"]; ?></td>
+                </tr>
+            </tbody>
+        </table>
         <?php
-        $cnt = 1;
-
-        $total_voters_sum = 0;
-        $total_bosste_sum = 0;
-        $total_asanza_sum = 0;
-        $total_rodriguez_sum = 0;
-        $total_laynes_sum = 0;
-        $total_alberto_sum = 0;
-
-        if ($mun == "VIRAC") {
-            $total_govcua_sum = 0;
-            $total_posoy_sum = 0;
-        }
-
-
-        foreach ($brgys as $key => $barangay) {
-            $brgy = $barangay[0];
-
-            $bosste_supporters = get_value("SELECT COUNT(*) FROM v_info 
-    INNER JOIN barangays ON barangays.id = v_info.barangayId 
-    INNER JOIN v_remarks ON v_info.v_id = v_remarks.v_id 
-    INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id 
-    WHERE municipality = '$mun' AND quick_remarks.category_id = '102' AND barangay = '$brgy' AND record_type  = 1 GROUP BY v_remarks.v_id");
-
-            $asanza_supporters = get_value("SELECT COUNT(*) FROM v_info 
-INNER JOIN barangays ON barangays.id = v_info.barangayId 
-INNER JOIN v_remarks ON v_info.v_id = v_remarks.v_id 
-INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id 
-WHERE municipality = '$mun' AND quick_remarks.category_id = '103' AND barangay = '$brgy' AND record_type  = 1 GROUP BY v_remarks.v_id");
-
-            $laynes_supporters = get_value("SELECT COUNT(*) FROM v_info 
-INNER JOIN barangays ON barangays.id = v_info.barangayId 
-INNER JOIN v_remarks ON v_info.v_id = v_remarks.v_id 
-INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id 
-WHERE municipality = '$mun' AND quick_remarks.category_id = '107' AND barangay = '$brgy' AND record_type  = 1 GROUP BY v_remarks.v_id");
-
-            $rodriguez_supporters = get_value("SELECT COUNT(*) FROM v_info 
-INNER JOIN barangays ON barangays.id = v_info.barangayId 
-INNER JOIN v_remarks ON v_info.v_id = v_remarks.v_id 
-INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id 
-WHERE municipality = '$mun' AND quick_remarks.category_id = '105' AND barangay = '$brgy' AND record_type  = 1 GROUP BY v_remarks.v_id");
-
-            $alberto_supporters = get_value("SELECT COUNT(*) FROM v_info 
-INNER JOIN barangays ON barangays.id = v_info.barangayId 
-INNER JOIN v_remarks ON v_info.v_id = v_remarks.v_id 
-INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id 
-WHERE municipality = '$mun' AND quick_remarks.category_id = '101' AND barangay = '$brgy' AND record_type  = 1 GROUP BY v_remarks.v_id");
-
-            if ($mun == "VIRAC") {
-                $govcua_supporters = get_value("SELECT COUNT(*) FROM v_info 
-    INNER JOIN barangays ON barangays.id = v_info.barangayId 
-    INNER JOIN v_remarks ON v_info.v_id = v_remarks.v_id 
-    INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id 
-    WHERE municipality = '$mun' AND quick_remarks.category_id = '104' AND barangay = '$brgy' AND record_type  = 1 GROUP BY v_remarks.v_id");
-
-                $posoy_supporters = get_value("SELECT COUNT(*) FROM v_info 
-    INNER JOIN barangays ON barangays.id = v_info.barangayId 
-    INNER JOIN v_remarks ON v_info.v_id = v_remarks.v_id 
-    INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id 
-    WHERE municipality = '$mun' AND quick_remarks.category_id = '100' AND barangay = '$brgy' AND record_type  = 1 GROUP BY v_remarks.v_id");
-            }
-            $totalVoters = get_value("SELECT COUNT(*) FROM v_info INNER JOIN barangays ON barangays.id = v_info.barangayId WHERE municipality = '$mun' AND record_type = 1 AND barangay = '$brgy'");
-
-            // Increment the total sums
-            $total_voters_sum += $totalVoters[0];
-            $total_bosste_sum += $bosste_supporters[0];
-            $total_asanza_sum += $asanza_supporters[0];
-            $total_rodriguez_sum += $rodriguez_supporters[0];
-            $total_laynes_sum += $laynes_supporters[0];
-            $total_alberto_sum += $alberto_supporters[0];
-
-            if ($mun == "VIRAC") {
-                $total_govcua_sum += $govcua_supporters[0];
-                $total_posoy_sum += $posoy_supporters[0];
-            }
+        if (!empty($members)) {
             ?>
-            <tr>
-                <td><?php echo $cnt ?></td>
-                <td><?php echo $brgy; ?></td>
-                <td><?php echo number_format($totalVoters[0]); ?></td>
-                <td><?php echo number_format($bosste_supporters[0]); ?></td>
-                <td><?php echo number_format($asanza_supporters[0]); ?></td>
-                <td><?php echo number_format($rodriguez_supporters[0]); ?></td>
-                <td><?php echo number_format($laynes_supporters[0]); ?></td>
-                <td><?php echo number_format($alberto_supporters[0]); ?></td>
-                <?php
-                if ($mun == "VIRAC") {
-                    ?>
-                    <td><?php echo $govcua_supporters[0]; ?></td>
-                    <td><?php echo $posoy_supporters[0]; ?></td>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Family Members</th>
+                        <th>Congressman</th>
+                        <th>Governor</th>
+                        <th>Vice-Governor</th>
+                    </tr>
+                </thead>
+                <tbody>
                     <?php
-                }
-                ?>
-            </tr>
+                    foreach ($members as $key => $member) {
+                        $memfullname = $member["v_lname"] . ', ' . $member["v_fname"] . ' ' . $member["v_mname"];
+                        ?>
+                        <tr>
+                            <td><?php echo $key + 1; ?>.</td>
+                            <td><?php echo $memfullname; ?></td>
+                            <td><?php echo $member["cong"]; ?></td>
+                            <td><?php echo $member["gov"]; ?></td>
+                            <td><?php echo $member["vgov"]; ?></td>
+                        </tr>
+                        <?php
+                    }
+                    ?>
+
+                </tbody>
+            </table>
             <?php
-            $cnt++;
         }
-        ?>
-        <!-- Total Row -->
-        <tr>
-            <td colspan="2"><strong>Total</strong></td>
-            <td><strong><?php echo number_format($total_voters_sum)  ?></strong></td>
-            <td><strong><?php echo number_format($total_bosste_sum); ?></strong></td>
-            <td><strong><?php echo number_format($total_asanza_sum); ?></strong></td>
-            <td><strong><?php echo number_format($total_rodriguez_sum); ?></strong></td>
-            <td><strong><?php echo number_format($total_laynes_sum); ?></strong></td>
-            <td><strong><?php echo number_format($total_alberto_sum); ?></strong></td>
-            <?php
-            if ($mun == "VIRAC") {
-                ?>
-                <td><strong><?php echo number_format($total_govcua_sum); ?></strong></td>
-                <td><strong><?php echo number_format($total_posoy_sum); ?></strong></td>
-                <?php
-            }
-            ?>
+    }
+    ?>
+    <!-- <table class="table table-bordered">
 
-        </tr>
-    </tbody>
-</table>
-
-<?php
+    </table> -->
+    <footer></footer>
+    <?php
+    $cnt++;
+}
 include("rep_footer.php");
 ?>

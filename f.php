@@ -49,7 +49,7 @@ function redirect($x, $y)
 }
 //get contact info
 		function get_array($query){
-			include('conn/conn.php');
+			include('conn.php');
 			$arr = array();
 			$r = $mq($c, $query);
 			while($rw = $mf($r)){
@@ -60,9 +60,18 @@ function redirect($x, $y)
 
 //get single value from query
 		function get_value($query){
-			include('conn/conn.php');
+			include('conn.php');
 
 			$r = $mq($c, $query);
 			$rw = $mf($r);
 			return $rw;
+		}
+
+		function getVotingPreference($cong, $gov, $vgov){
+			if($cong == "Laynes (Survey 2025)" && $gov == "BossTe(Survey 2025)" && $vgov == "Fernandez(Survey 2025)"){
+				return "Vote Straight";
+			}
+			if($cong == "UndecidedCong(Survey 2025)" && $gov == "UndecidedGov(Survey 2025)" && $vgov == "UndecidedVGov(Survey 2025)"){
+				return "Undecided";
+			}
 		}
