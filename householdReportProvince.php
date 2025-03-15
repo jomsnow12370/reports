@@ -2,9 +2,7 @@
 include("conn.php");
 include("f.php");
 ini_set('max_execution_time', 0);
-$mun = $_GET["mun"];
 include("rep_header.php");
-
 
 $summary[] = array();
 $total_wl = 0;
@@ -33,7 +31,8 @@ $total_na = 0;
 
 // Array to store leader summaries
 $leader_summaries = array();
-$barangay_summaries = array();
+$municipality_summaries = array();
+
 $r = get_array("SELECT 
     leader_v_id,
     v_lname,
@@ -47,8 +46,9 @@ $r = get_array("SELECT
         WHEN type = 4 THEN 'MC'
     END AS leader_type,
     barangay,
-    barangay as brgy,
-    (SELECT COUNT(*) from v_info INNER JOIN barangays ON barangays.id = v_info.barangayId WHERE record_type = 1 AND barangay = brgy) as totalVoters
+    municipality,
+    municipality as mun,
+    (SELECT COUNT(*) from v_info INNER JOIN barangays ON barangays.id = v_info.barangayId WHERE record_type = 1 AND municipality = mun) as totalVoters
 FROM
     head_household
         INNER JOIN
@@ -57,15 +57,15 @@ FROM
     barangays ON barangays.id = v_info.barangayId
         INNER JOIN
     leaders ON leaders.v_id = head_household.leader_v_id
-WHERE
-    municipality = '$mun'
-GROUP BY leader_v_id ORDER BY barangay");
+GROUP BY leader_v_id ORDER BY municipality, barangay");
+
 $cnt = 1;
 foreach ($r as $key => $leader) {
     $leader_id = $leader[0];
     $leader_type = $leader[5];
     $leader_name = $leader[1] . ', ' . $leader[2] . ' ' . $leader[3];
     $leader_barangay = $leader["barangay"];
+    $leader_municipality = $leader["municipality"];
     $leader_purok = $leader[4];
     $totalVoters = $leader["totalVoters"];
 
@@ -102,7 +102,7 @@ foreach ($r as $key => $leader) {
     (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '55' and v_id = vid ORDER BY v_remarks_id DESC LIMIT 1) as cong, 
     (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '56' and v_id = vid ORDER BY v_remarks_id DESC LIMIT 1) as gov, 
     (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '57' and v_id = vid ORDER BY v_remarks_id DESC LIMIT 1) as vgov,
-     (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '52' and v_id = vid ORDER BY v_remarks_id DESC LIMIT 1) as others  
+    (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '52' and v_id = vid ORDER BY v_remarks_id DESC LIMIT 1) as others   
     FROM head_household INNER JOIN v_info ON v_info.v_id = head_household.fh_v_id WHERE leader_v_id = '$leader_id' GROUP BY head_household.fh_v_id ORDER BY purok_st ASC");
 
     foreach ($households as $key => $household) {
@@ -116,66 +116,67 @@ foreach ($r as $key => $leader) {
     (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '55' and v_id = mem_v_id ORDER BY v_remarks_id DESC LIMIT 1) as cong, 
     (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '56' and v_id = mem_v_id ORDER BY v_remarks_id DESC LIMIT 1) as gov, 
     (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '57' and v_id = mem_v_id ORDER BY v_remarks_id DESC LIMIT 1) as vgov,
-     (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '52' and v_id = mem_v_id ORDER BY v_remarks_id DESC LIMIT 1) as others   
+    (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '52' and v_id = mem_v_id ORDER BY v_remarks_id DESC LIMIT 1) as others  
     FROM household_warding INNER JOIN v_info ON v_info.v_id = household_warding.mem_v_id WHERE fh_v_id = '$hhid' GROUP BY household_warding.mem_v_id  ORDER BY v_lname, v_fname, v_mname ");
 
-if ($household["cong"] == "Laynes") {
-    $total_laynes += 1;
-    $leader_laynes_count += 1;
-}
+        if ($household["cong"] == "Laynes") {
+            $total_laynes += 1;
+            $leader_laynes_count += 1;
+        }
 
-if ($household["cong"] == "Rodriguez") {
-    $total_rodriguez += 1;
-    $leader_rodriguez_count += 1;
-}
+        if ($household["cong"] == "Rodriguez") {
+            $total_rodriguez += 1;
+            $leader_rodriguez_count += 1;
+        }
 
-if ($household["cong"] == "Alberto") {
-    $total_alberto += 1;
-    $leader_alberto_count += 1;
-}
+        if ($household["cong"] == "Alberto") {
+            $total_alberto += 1;
+            $leader_alberto_count += 1;
+        }
 
-if ($household["cong"] == "Undecided" || $household["cong"] == "") {
-    $total_undecided_cong += 1;
-    $leader_undecidedcong_count += 1;
-}
-
-
-if ($household["gov"] == "BossTe") {
-    $total_bosste += 1;
-    $leader_bosste_count += 1;
-}
-if ($household["gov"] == "Asanza") {
-    $total_asanza += 1;
-    $leader_asanza_count += 1;
-}
-if ($household["gov"] == "Undecided" || $household["gov"] == "") {
-    $total_undecided_gov += 1;
-    $leader_undecidedgov_count += 1;
-}
+        if ($household["cong"] == "Undecided" || $household["cong"] == "") {
+            $total_undecided_cong += 1;
+            $leader_undecidedcong_count += 1;
+        }
 
 
-if ($household["vgov"] == "Fernandez") {
-    $total_fernandez += 1;
-    $leader_fernandez_count += 1;
-}
-if ($household["vgov"] == "Abundo") {
-    $total_abundo += 1;
-    $leader_abundo_count += 1;
-}
-if ($household["vgov"] == "Undecided" || $household["vgov"] == "") {
-    $total_undecided_vgov += 1;
-    $leader_undecidedvgov_count += 1;
-}
+        if ($household["gov"] == "BossTe") {
+            $total_bosste += 1;
+            $leader_bosste_count += 1;
+        }
+        if ($household["gov"] == "Asanza") {
+            $total_asanza += 1;
+            $leader_asanza_count += 1;
+        }
+        if ($household["gov"] == "Undecided" || $household["gov"] == "") {
+            $total_undecided_gov += 1;
+            $leader_undecidedgov_count += 1;
+        }
 
-if ($household["others"] == "Outside Province(Household Warding)") {
-    $total_op += 1;
-    $leader_op += 1;
-}
 
-if ($household["others"] == "Needs Assistance(Household Warding)") {
-    $total_na += 1;
-    $leader_na += 1;
-}
+        if ($household["vgov"] == "Fernandez") {
+            $total_fernandez += 1;
+            $leader_fernandez_count += 1;
+        }
+        if ($household["vgov"] == "Abundo") {
+            $total_abundo += 1;
+            $leader_abundo_count += 1;
+        }
+        if ($household["vgov"] == "Undecided" || $household["vgov"] == "") {
+            $total_undecided_vgov += 1;
+            $leader_undecidedvgov_count += 1;
+        }
+
+        if ($household["others"] == "Outside Province(Household Warding)") {
+            $total_op += 1;
+            $leader_op += 1;
+        }
+
+        if ($household["others"] == "Needs Assistance(Household Warding)") {
+            $total_na += 1;
+            $leader_na += 1;
+        }
+
 
         if (!empty($members)) {
             foreach ($members as $key => $member) {
@@ -243,9 +244,33 @@ if ($household["others"] == "Needs Assistance(Household Warding)") {
         }
     }
 
-    // Inside the leader loop, after processing households and members, add this code to update barangay summaries
-    if (!isset($barangay_summaries[$leader_barangay])) {
-        $barangay_summaries[$leader_barangay] = array(
+    // Store leader summary in the array
+    $leader_summaries[] = array(
+        'name' => $leader_name,
+        'purok' => $leader_purok,
+        'barangay' => $leader_barangay,
+        'municipality' => $leader_municipality,
+        'type' => $leader_type,
+        'households' => $leader_household_count,
+        'members' => $leader_members_count,
+        'total' => $leader_household_count + $leader_members_count,
+        'laynes' => $leader_laynes_count,
+        'rodriguez' => $leader_rodriguez_count,
+        'alberto' => $leader_alberto_count,
+        'undecidedcong' => $leader_undecidedcong_count,
+        'bosste' => $leader_bosste_count,
+        'asanza' => $leader_asanza_count,
+        'undecidedgov' => $leader_undecidedgov_count,
+        'fernandez' => $leader_fernandez_count,
+        'abundo' => $leader_abundo_count,
+        'undecidedvgov' => $leader_undecidedvgov_count,
+        'op' => $leader_op,
+        'na' => $leader_na,
+    );
+
+    // Inside the leader loop, after processing households and members, add this code to update municipality summaries
+    if (!isset($municipality_summaries[$leader_municipality])) {
+        $municipality_summaries[$leader_municipality] = array(
             'totalVoters' => 0,
             'household_count' => 0,
             'members_count' => 0,
@@ -266,43 +291,48 @@ if ($household["others"] == "Needs Assistance(Household Warding)") {
         );
     }
 
-    // Update barangay totals
-    $barangay_summaries[$leader_barangay]['household_count'] += $leader_household_count;
-    $barangay_summaries[$leader_barangay]['members_count'] += $leader_members_count;
+    // Update municipality totals
+    $municipality_summaries[$leader_municipality]['household_count'] += $leader_household_count;
+    $municipality_summaries[$leader_municipality]['members_count'] += $leader_members_count;
 
-    $barangay_summaries[$leader_barangay]['laynes_count'] += $leader_laynes_count;
-    $barangay_summaries[$leader_barangay]['rodriguez_count'] += $leader_rodriguez_count;
-    $barangay_summaries[$leader_barangay]['alberto_count'] += $leader_alberto_count;
-    $barangay_summaries[$leader_barangay]['undecidedcong_count'] += $leader_undecidedcong_count;
+    $municipality_summaries[$leader_municipality]['laynes_count'] += $leader_laynes_count;
+    $municipality_summaries[$leader_municipality]['rodriguez_count'] += $leader_rodriguez_count;
+    $municipality_summaries[$leader_municipality]['alberto_count'] += $leader_alberto_count;
+    $municipality_summaries[$leader_municipality]['undecidedcong_count'] += $leader_undecidedcong_count;
 
-    $barangay_summaries[$leader_barangay]['bosste_count'] += $leader_bosste_count;
-    $barangay_summaries[$leader_barangay]['asanza_count'] += $leader_asanza_count;
-    $barangay_summaries[$leader_barangay]['undecidedgov_count'] += $leader_undecidedgov_count;
+    $municipality_summaries[$leader_municipality]['bosste_count'] += $leader_bosste_count;
+    $municipality_summaries[$leader_municipality]['asanza_count'] += $leader_asanza_count;
+    $municipality_summaries[$leader_municipality]['undecidedgov_count'] += $leader_undecidedgov_count;
 
-    $barangay_summaries[$leader_barangay]['fernandez_count'] += $leader_fernandez_count;
-    $barangay_summaries[$leader_barangay]['abundo_count'] += $leader_abundo_count;
-    $barangay_summaries[$leader_barangay]['undecidedvgov_count'] += $leader_undecidedvgov_count;
+    $municipality_summaries[$leader_municipality]['fernandez_count'] += $leader_fernandez_count;
+    $municipality_summaries[$leader_municipality]['abundo_count'] += $leader_abundo_count;
+    $municipality_summaries[$leader_municipality]['undecidedvgov_count'] += $leader_undecidedvgov_count;
 
-    $barangay_summaries[$leader_barangay]['op'] += $leader_op;
-    $barangay_summaries[$leader_barangay]['na'] += $leader_na;
+    $municipality_summaries[$leader_municipality]['op'] += $leader_op;
+    $municipality_summaries[$leader_municipality]['na'] += $leader_na;
 
-    $barangay_summaries[$leader_barangay]['totalVoters'] = $totalVoters;
+    $municipality_summaries[$leader_municipality]['totalVoters'] = $totalVoters;
 
-// Update leader type count
-if ($leader_type == "WL") {
-    $barangay_summaries[$leader_barangay]['wl_count'] += 1;
-} elseif ($leader_type == "BC") {
-    $barangay_summaries[$leader_barangay]['bc_count'] += 1;
-}
+    // Update leader type count
+    if ($leader_type == "WL") {
+        $municipality_summaries[$leader_municipality]['wl_count'] += 1;
+    } elseif ($leader_type == "BC") {
+        $municipality_summaries[$leader_municipality]['bc_count'] += 1;
+    }
+
+    ?>
+    <footer></footer>
+    <?php
+    $cnt++;
 }
 ?>
-<h2><?php $mun ?></h2>
-<h2>Summary by Barangay - <?php echo $mun; ?></h2>
+<footer></footer>
+<h2 class="text-center">Province-wide Summary</h2>
 <table class="table table-bordered">
 <thead>
-    <tr>
+<tr>
         <th rowspan="2">#</th>
-        <th rowspan="2">Barangay</th>
+        <th rowspan="2">Municipality</th>
         <th rowspan="2">Voters</th>
         <th rowspan="2">WL Leaders</th>
         <th rowspan="2">BC Leaders</th>
@@ -336,15 +366,18 @@ if ($leader_type == "WL") {
         $total_bc_leaders = 0;
         $total_leaders = 0;
         $total_voters = 0;
-        foreach ($barangay_summaries as $barangay => $data) {
+        foreach ($municipality_summaries as $municipality => $data) {
             $total_people = $data['household_count'] + $data['members_count'];
             $total_wl_leaders += $data['wl_count'];
             $total_bc_leaders += $data['bc_count'];
-            $total_leaders += $data['wl_count'] + $data['bc_count'];
+
             $total_voters += $data['totalVoters'];
+
+            $total_leaders += $data['wl_count'] + $data['bc_count'];
+
             echo "<tr>";
             echo "<td>" . $cnt . "</td>";
-            echo "<td>" . $barangay. "</td>";
+            echo "<td>" . $municipality . "</td>";
             echo "<td>" . $data['totalVoters'] . "</td>";
             echo "<td>" . $data['wl_count'] . "</td>";
             echo "<td>" . $data['bc_count'] . "</td>";
@@ -370,7 +403,7 @@ if ($leader_type == "WL") {
         }
         ?>
         <tr>
-        <td colspan="2">Total</td>
+            <td colspan="2">Total</td>
             <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_voters; ?></td>
             <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_wl_leaders; ?></td>
             <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_bc_leaders; ?></td>
@@ -395,7 +428,6 @@ if ($leader_type == "WL") {
         </tr>
     </tbody>
 </table>
-<footer></footer>
 <?php
 include("rep_footer.php");
 ?>
