@@ -3,9 +3,61 @@ include("conn.php");
 include("f.php");
 ini_set('max_execution_time', 0);
 $mun = $_GET["mun"];
-include("rep_header.php");
 
+?>
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warding Summary <?php echo $mun; ?></title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style type="text/css">
+    @media print {
+        footer {
+            page-break-after: always;
+        }
+    }
+
+    .bg-cs {
+        color: #4F8A10;
+        background-color: #DFF2BF;
+        border: solid 1px #4F8A10;
+    }
+
+    .bg-cua {
+        color: #00529B;
+        background-color: #BDE5F8;
+
+    }
+
+    .bg-grabe {
+        color: #D8000C;
+        background-color: #FFD2D2;
+    }
+
+    .canvas {
+        margin-left: -120px;
+    }
+
+    h5,
+    h4,
+    h3,
+    h2,
+    h1 {
+        color: #747d8a;
+    }
+    </style>
+</head>
+
+<body>
+    <?php 
 $summary[] = array();
 $total_wl = 0;
 $total_bc = 0;
@@ -46,9 +98,7 @@ $r = get_array("SELECT
         WHEN type = 3 THEN 'DC'
         WHEN type = 4 THEN 'MC'
     END AS leader_type,
-    barangay,
-    barangay as brgy,
-    (SELECT COUNT(*) from v_info INNER JOIN barangays ON barangays.id = v_info.barangayId WHERE record_type = 1 AND barangay = brgy) as totalVoters
+    barangay
 FROM
     head_household
         INNER JOIN
@@ -296,41 +346,41 @@ if ($leader_type == "WL") {
 }
 }
 ?>
-<h2><?php $mun ?></h2>
-<h2>Summary by Barangay - <?php echo $mun; ?></h2>
-<table class="table table-bordered">
-<thead>
-    <tr>
-        <th rowspan="2">#</th>
-        <th rowspan="2">Barangay</th>
-        <th rowspan="2">Voters</th>
-        <th rowspan="2">WL Leaders</th>
-        <th rowspan="2">BC Leaders</th>
-        <th rowspan="2">Total Leaders</th>
-        <th rowspan="2">Household Total</th>
-        <th colspan="4" class="text-center">Congressman</th>
-        <th colspan="3" class="text-center">Governor</th>
-        <th colspan="3" class="text-center">Vice Governor</th>
-        <th colspan="2" class="text-center">Status</th>
-    </tr>
-    <tr>
-     
-        <th>Laynes</th>
-        <th>Rodriguez</th>
-        <th>Alberto</th>
-        <th>Undecided</th>
-        <th>BossTe</th>
-        <th>Asanza</th>
-        <th>Undecided</th>
-        <th>Fernandez</th>
-        <th>Abundo</th>
-        <th>Undecided</th>
-        <th>O.P</th>
-        <th>N.A</th>
-    </tr>
-</thead>
-    <tbody>
-        <?php
+    <h2><?php $mun ?></h2>
+    <h2>Summary by Barangay - <?php echo $mun; ?></h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th rowspan="2">#</th>
+                <th rowspan="2">Barangay</th>
+                <th rowspan="2">Voters</th>
+                <th rowspan="2">WL Leaders</th>
+                <th rowspan="2">BC Leaders</th>
+                <th rowspan="2">Total Leaders</th>
+                <th rowspan="2">Household Total</th>
+                <th colspan="4" class="text-center">Congressman</th>
+                <th colspan="3" class="text-center">Governor</th>
+                <th colspan="3" class="text-center">Vice Governor</th>
+                <th colspan="2" class="text-center">Status</th>
+            </tr>
+            <tr>
+
+                <th>Laynes</th>
+                <th>Rodriguez</th>
+                <th>Alberto</th>
+                <th>Undecided</th>
+                <th>BossTe</th>
+                <th>Asanza</th>
+                <th>Undecided</th>
+                <th>Fernandez</th>
+                <th>Abundo</th>
+                <th>Undecided</th>
+                <th>O.P</th>
+                <th>N.A</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
         $cnt = 1;
         $total_wl_leaders = 0;
         $total_bc_leaders = 0;
@@ -369,33 +419,36 @@ if ($leader_type == "WL") {
             $cnt++;
         }
         ?>
-        <tr>
-        <td colspan="2">Total</td>
-            <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_voters; ?></td>
-            <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_wl_leaders; ?></td>
-            <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_bc_leaders; ?></td>
-            <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_leaders; ?></td>
-            <td class="text-danger" style="font-size: 20px;font-weight: 900">
-                <?php echo $total_head_of_household + $total_members; ?>
-            </td>
-            <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_laynes; ?></td>
-            <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_rodriguez; ?></td>
-            <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_alberto; ?></td>
-            <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_undecided_cong; ?></td>
+            <tr>
+                <td colspan="2">Total</td>
+                <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_voters; ?></td>
+                <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_wl_leaders; ?></td>
+                <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_bc_leaders; ?></td>
+                <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_leaders; ?></td>
+                <td class="text-danger" style="font-size: 20px;font-weight: 900">
+                    <?php echo $total_head_of_household + $total_members; ?>
+                </td>
+                <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_laynes; ?></td>
+                <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_rodriguez; ?></td>
+                <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_alberto; ?></td>
+                <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_undecided_cong; ?>
+                </td>
 
-            <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_bosste; ?></td>
-            <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_asanza; ?></td>
-            <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_undecided_gov; ?></td>
+                <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_bosste; ?></td>
+                <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_asanza; ?></td>
+                <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_undecided_gov; ?>
+                </td>
 
-            <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_fernandez; ?></td>
-            <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_abundo; ?></td>
-            <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_undecided_vgov; ?></td>
-            <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_op; ?></td>
-            <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_na; ?></td>
-        </tr>
-    </tbody>
-</table>
-<footer></footer>
-<?php
-include("rep_footer.php");
-?>
+                <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_fernandez; ?></td>
+                <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_abundo; ?></td>
+                <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_undecided_vgov; ?>
+                </td>
+                <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_op; ?></td>
+                <td class="text-danger" style="font-size: 20px;font-weight: 900"><?php echo $total_na; ?></td>
+            </tr>
+        </tbody>
+    </table>
+    <footer></footer>
+</body>
+
+</html>

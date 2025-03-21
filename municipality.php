@@ -2,8 +2,9 @@
 include("conn.php");
 include("f.php");
 ini_set('max_execution_time', 0);
+$mun = $_GET["mun"];
 // Function to get count using a standardized query
-function count_leaders($c, $leader_type) {
+function count_leaders($c, $leader_type, $mun) {
     $query = "SELECT COUNT(*) from leaders 
               INNER JOIN v_info ON leaders.v_id = v_info.v_id 
               INNER JOIN barangays ON barangays.id = v_info.barangayId 
@@ -11,14 +12,14 @@ function count_leaders($c, $leader_type) {
               AND v_info.record_type = 1 
               AND electionyear = 2025 
               AND status is null 
-
+              AND municipality = '$mun' 
               GROUP by leaders.v_id";
     $result = mysqli_query($c, $query);
     return mysqli_num_rows($result);
 }
 
 // Function to get count from survey responses
-function count_survey_responses($c, $remarks_txt, $is_household_head = true) {
+function count_survey_responses($c, $mun, $remarks_txt, $is_household_head = true) {
     $table = $is_household_head ? "head_household" : "household_warding";
     $id_field = $is_household_head ? "fh_v_id" : "mem_v_id";
     
@@ -30,7 +31,7 @@ function count_survey_responses($c, $remarks_txt, $is_household_head = true) {
               INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id
               WHERE record_type = 1
               AND remarks_txt = '$remarks_txt'
-
+              AND municipality = '$mun'
               GROUP BY v_remarks.v_id";
     
     $result = mysqli_query($c, $query);
@@ -38,22 +39,22 @@ function count_survey_responses($c, $remarks_txt, $is_household_head = true) {
 }
 
 // Get leader counts
-$total_mc = count_leaders($c, 4);
-$total_dc = count_leaders($c, 3);
-$total_bc = count_leaders($c, 2);
-$total_wl = count_leaders($c, 1);
+$total_mc = count_leaders($c, 4, $mun);
+$total_dc = count_leaders($c, 3, $mun);
+$total_bc = count_leaders($c, 2, $mun);
+$total_wl = count_leaders($c, 1, $mun);
 
 // Get household counts
 $res_head_household = mysqli_query($c, "SELECT COUNT(*) from head_household 
                                         INNER JOIN v_info ON v_info.v_id = head_household.fh_v_id 
                                         INNER JOIN barangays ON barangays.id = v_info.barangayId 
-                                        WHERE record_type = 1 
+                                        WHERE record_type = 1 AND municipality = '$mun' 
                                         GROUP BY fh_v_id");
                                         
 $res_household_member = mysqli_query($c, "SELECT COUNT(*) from household_warding 
                                           INNER JOIN v_info ON v_info.v_id = household_warding.fh_v_id 
                                           INNER JOIN barangays ON barangays.id = v_info.barangayId 
-                                          WHERE record_type = 1 
+                                          WHERE record_type = 1 AND municipality = '$mun' 
                                           GROUP BY mem_v_id");
 
 $head_household = mysqli_num_rows($res_head_household);
@@ -63,7 +64,7 @@ $household_total = $head_household + $household_member;
 // Get total voters
 $total_voters = get_value("SELECT COUNT(*) from v_info 
                            INNER JOIN barangays ON barangays.id = v_info.barangayId 
-                           WHERE v_info.record_type = 1 ");
+                           WHERE v_info.record_type = 1 and municipality = '$mun'");
 
 // Survey data - Congressional candidates
 $candidates = ['Laynes', 'Rodriguez', 'Alberto', 'UndecidedCong'];
@@ -72,8 +73,8 @@ $total_warding_cong = 0;
 
 foreach ($candidates as $candidate) {
     $remarks = $candidate . '(Survey 2025)';
-    $head_count = count_survey_responses($c, $remarks, true);
-    $member_count = count_survey_responses($c, $remarks, false);
+    $head_count = count_survey_responses($c, $mun, $remarks, true);
+    $member_count = count_survey_responses($c, $mun, $remarks, false);
     
     $cong_totals[$candidate] = [
         'head' => $head_count,
@@ -91,8 +92,8 @@ $total_warding_gov = 0;
 
 foreach ($gov_candidates as $candidate) {
     $remarks = $candidate . '(Survey 2025)';
-    $head_count = count_survey_responses($c, $remarks, true);
-    $member_count = count_survey_responses($c, $remarks, false);
+    $head_count = count_survey_responses($c, $mun, $remarks, true);
+    $member_count = count_survey_responses($c, $mun, $remarks, false);
     
     $gov_totals[$candidate] = [
         'head' => $head_count,
@@ -110,8 +111,8 @@ $total_warding_vgov = 0;
 
 foreach ($vgov_candidates as $candidate) {
     $remarks = $candidate . '(Survey 2025)';
-    $head_count = count_survey_responses($c, $remarks, true);
-    $member_count = count_survey_responses($c, $remarks, false);
+    $head_count = count_survey_responses($c, $mun, $remarks, true);
+    $member_count = count_survey_responses($c, $mun, $remarks, false);
     
     $vgov_totals[$candidate] = [
         'head' => $head_count,
@@ -211,7 +212,7 @@ $vgov_blanks = $household_total - $total_warding_vgov;
 
 <body class="bg-dark">
     <div class="container mt-4">
-        <h1 class="text-light text-center">2025 Election Dashboard</h1>
+        <h1 class="text-light text-center">2025 Election Dashboard <?php echo $mun ?></h1>
         <!-- Total Voters Card -->
         <div class="row">
             <div class="col-lg-4 mb-4">
@@ -225,8 +226,7 @@ $vgov_blanks = $household_total - $total_warding_vgov;
                                 <div class="h5 mb-0 fw-bold">
                                     <?php 
                     // Get the total number of voters
-                    $total_voters = get_value("SELECT COUNT(*) from v_info WHERE v_info.record_type = 1");
-                    
+           
                     echo number_format($total_voters[0]);
 
                     // Get subtotal of voters per municipality
@@ -600,8 +600,6 @@ $vgov_blanks = $household_total - $total_warding_vgov;
                 </div>
             </div>
         </div>
-    </div>
-
     </div>
 
 
