@@ -4,6 +4,34 @@ date_default_timezone_set("Asia/Manila");
 $datenow = date("Y-m-d");
 $timenow = date("h:i A");
 $datetimenow = $datenow . ' ' . $timenow;
+
+
+function getLeaderType($type){
+	$leaderType = "";
+switch ($type) {
+	case 1:
+		$leaderType =  "Ward Leader";
+		break;
+
+		case 2:
+		$leaderType = "Barangay Coordinator";
+		break;
+
+			case 3:
+		$leaderType = "District Coordinator";
+		break;
+
+			case 4:
+		$leaderType = "Municipal Coordinator";
+		break;
+	
+	default:
+		$leaderType = "N/A";
+		break;
+		
+}
+return $leaderType;
+}
 //post
 function p($var)
 {

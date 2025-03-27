@@ -98,7 +98,9 @@ $r = get_array("SELECT
         WHEN type = 3 THEN 'DC'
         WHEN type = 4 THEN 'MC'
     END AS leader_type,
-    barangay
+    barangay,
+    barangay as brgy,
+    (SELECT COUNT(*) from v_info INNER JOIN barangays ON barangays.id = v_info.barangayId WHERE record_type = 1 AND barangay = brgy) as totalVoters
 FROM
     head_household
         INNER JOIN
@@ -109,6 +111,7 @@ FROM
     leaders ON leaders.v_id = head_household.leader_v_id
 WHERE
     municipality = '$mun'
+    AND record_type = 1
 GROUP BY leader_v_id ORDER BY barangay");
 $cnt = 1;
 foreach ($r as $key => $leader) {
@@ -153,7 +156,7 @@ foreach ($r as $key => $leader) {
     (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '56' and v_id = vid ORDER BY v_remarks_id DESC LIMIT 1) as gov, 
     (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '57' and v_id = vid ORDER BY v_remarks_id DESC LIMIT 1) as vgov,
      (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '52' and v_id = vid ORDER BY v_remarks_id DESC LIMIT 1) as others  
-    FROM head_household INNER JOIN v_info ON v_info.v_id = head_household.fh_v_id WHERE leader_v_id = '$leader_id' GROUP BY head_household.fh_v_id ORDER BY purok_st ASC");
+    FROM head_household INNER JOIN v_info ON v_info.v_id = head_household.fh_v_id WHERE leader_v_id = '$leader_id' AND record_type = 1 GROUP BY head_household.fh_v_id ORDER BY purok_st ASC");
 
     foreach ($households as $key => $household) {
         $hhid = $household[0];
@@ -167,7 +170,7 @@ foreach ($r as $key => $leader) {
     (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '56' and v_id = mem_v_id ORDER BY v_remarks_id DESC LIMIT 1) as gov, 
     (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '57' and v_id = mem_v_id ORDER BY v_remarks_id DESC LIMIT 1) as vgov,
      (SELECT shortcut_txt from v_remarks INNER JOIN quick_remarks ON quick_remarks.remarks_id = v_remarks.remarks_id WHERE category_id = '52' and v_id = mem_v_id ORDER BY v_remarks_id DESC LIMIT 1) as others   
-    FROM household_warding INNER JOIN v_info ON v_info.v_id = household_warding.mem_v_id WHERE fh_v_id = '$hhid' GROUP BY household_warding.mem_v_id  ORDER BY v_lname, v_fname, v_mname ");
+    FROM household_warding INNER JOIN v_info ON v_info.v_id = household_warding.mem_v_id WHERE fh_v_id = '$hhid'  AND record_type = 1 GROUP BY household_warding.mem_v_id  ORDER BY v_lname, v_fname, v_mname ");
 
 if ($household["cong"] == "Laynes") {
     $total_laynes += 1;
