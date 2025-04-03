@@ -35,6 +35,12 @@ $fernandez_total = 0;
 $abundo_total = 0;
 $undecidedvice_total = 0;
 
+
+//viracmayor
+$cua_total = 0;
+$posoy_total = 0;
+$undecidedmayortotal = 0;
+
 $munquery = "";
 if($mun != "") {
     $munquery = " AND municipality = '$mun'";
@@ -243,6 +249,19 @@ foreach ($r as $key => $value) {
             $undecidedvice_total++;
         }
     }
+
+
+
+      $calculation_viracmayor = $supportercheck - $row['haterCheck'] - $row['posoyCheck'];
+    if ($calculation_viracmayor > 0) {
+        $cua_total++;
+    } elseif ($calculation_viracmayor <= 0) {
+        if ($row['posoyCheck'] > 0) {
+            $posoy_total++;
+        } else {
+            $undecidedmayortotal++;
+        }
+    }
 }
 
 ?>
@@ -345,7 +364,9 @@ foreach ($r as $key => $value) {
 
     <div id="mainContent">
         <div class="container-fluid mt-4">
-            <h1 class="text-light text-center">2025 Catseye Data Report</h1>
+            <h1 class="text-light text-center">2025 Cat's-eye Data Report <br>
+                <small><a href="warding_dashboard.php" style="font-size: 16px;">Go to Warding Dashboard</a></small>
+            </h1>
             <div class="row">
                 <div class="col-12">
                     <!-- Total Voters Card -->
@@ -401,7 +422,7 @@ foreach ($r as $key => $value) {
                             </div>
                             <div class="col-12">
                                 <?php 
-                            if(isset($_GET["mun"])) {
+                             if(isset($_GET["mun"])) {
 
                                 if(isset($_GET["brgy"])){
                                      ?>
@@ -421,7 +442,6 @@ foreach ($r as $key => $value) {
                                             <thead class="thead-dark">
                                                 <tr>
                                                     <th>#</th>
-                                                    <th>ID</th>
                                                     <th>Full Name</th>
                                                     <th>Gender</th>
                                                     <th>Age</th>
@@ -444,32 +464,31 @@ foreach ($r as $key => $value) {
                                             <tbody>
                                                 <?php
                                                 $cnt =1;
-                // Loop through $all_data and populate the table
-                foreach ($all_data as $row) {
-                    echo "<tr>";
-                    echo "<td>" . htmlspecialchars($cnt) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['id']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['fullname']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['gender']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['age']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['municipality']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['barangay']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['precinct']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['leaderCheck']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['laynesLeaderCheck']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['wardingCheck']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['tagCheck']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['asanzaPostCheck']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['abundoCheck']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['posoyCheck']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['laynesCheck']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['rodriguezCheck']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['albertoCheck']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['haterCheck']) . "</td>";
-                    echo "</tr>";
-                    $cnt++;
-                }
-                ?>
+                                            // Loop through $all_data and populate the table
+                                            foreach ($all_data as $row) {
+                                                echo "<tr>";
+                                                echo "<td>" . htmlspecialchars($cnt) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row['fullname']) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row['gender']) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row['age']) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row['municipality']) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row['barangay']) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row['precinct']) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row['leaderCheck']) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row['laynesLeaderCheck']) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row['wardingCheck']) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row['tagCheck']) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row['asanzaPostCheck']) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row['abundoCheck']) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row['posoyCheck']) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row['laynesCheck']) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row['rodriguezCheck']) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row['albertoCheck']) . "</td>";
+                                                echo "<td>" . htmlspecialchars($row['haterCheck']) . "</td>";
+                                                echo "</tr>";
+                                                $cnt++;
+                                            }
+                                            ?>
                                             </tbody>
                                         </table>
                                     </div>
@@ -477,7 +496,7 @@ foreach ($r as $key => $value) {
                                 <?php
                                 }
                                 else{
-   echo '<canvas id="barangayChart" width="400" height="200"></canvas>';
+                                echo '<canvas id="barangayChart" width="400" height="200"></canvas>';
                                 }
                             }
                              else{           
@@ -743,6 +762,84 @@ foreach ($r as $key => $value) {
                         </div>
                     </div>
                 </div>
+
+                <?php 
+                if(isset($_GET["mun"]) == "VIRAC"){
+                    ?>
+                <h5 class="text-light mt-4"><strong>Mayor</strong></h5>
+                <div class="row">
+                    <!-- laynes -->
+                    <div class="col-lg-4">
+                        <div class="card card-voters shadow mb-2" data-bs-toggle="modal"
+                            data-bs-target="#householdModal">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs fw-bold text-primary text-uppercase mb-1">
+                                            Cua
+                                        </div>
+                                        <div class="h5 mb-0 fw-bold">
+                                            <?php echo number_format($cua_total); ?>
+                                        </div>
+
+                                    </div>
+                                    <div class="col-auto">
+                                        <img src="assets/images/bossgov.jpg" alt="Profile" class="profile-img">
+                                    </div>
+                                </div>
+                                <!-- Category Breakdown -->
+                            </div>
+                        </div>
+                    </div>
+                    <!-- rodriguex -->
+                    <div class="col-lg-4">
+                        <div class="card card-voters shadow mb-2" data-bs-toggle="modal"
+                            data-bs-target="#householdModal">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs fw-bold text-primary text-uppercase mb-1">
+                                            Posoy
+                                        </div>
+                                        <div class="h5 mb-0 fw-bold">
+                                            <?php echo number_format($posoy_total); ?>
+                                        </div>
+
+                                    </div>
+                                    <div class="col-auto">
+                                        <img src="assets/images/posoyhaha.jpg" alt="Profile" class="profile-img">
+                                    </div>
+                                </div>
+                                <!-- Category Breakdown -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card card-voters shadow mb-2" data-bs-toggle="modal"
+                            data-bs-target="#householdModal">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs fw-bold text-primary text-uppercase mb-1">
+                                            Undecided
+                                        </div>
+                                        <div class="h5 mb-0 fw-bold">
+                                            <?php echo number_format($undecidedmayortotal); ?>
+                                        </div>
+
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fa fa-question-circle" style="font-size:50px"></i>
+                                    </div>
+                                </div>
+                                <!-- Category Breakdown -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php
+                }
+                ?>
             </div>
         </div>
     </div>

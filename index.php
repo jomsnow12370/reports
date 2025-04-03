@@ -27,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['username'] = $user['username'];
             
             // Redirect to dashboard
-            header("Location: index.php");
+            header("Location: family_ranking.php");
             exit();
         } else {
             // Invalid password
@@ -132,7 +132,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         ?>
 
-        <form method="POST" action="">
+        <form method="POST" action="" onsubmit="handleLogin()">
             <div class="mb-3">
                 <label for="username" class="form-label">Username</label>
                 <div class="input-group">
@@ -152,14 +152,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
             </div>
             <div class="d-grid">
-                <button type="submit" class="btn btn-primary btn-lg">Login</button>
+                <button type="submit" id="loginBtn" class="btn btn-primary btn-lg">Login</button>
             </div>
         </form>
+
         <div class="login-footer">
-            <p class="small">&copy; 2025 Cat's-eye Dashboard.</p>
+            <p class="small">&copy; 2025 Cat's-eye</p>
         </div>
     </div>
-
+    <script>
+    function handleLogin() {
+        const loginBtn = document.getElementById("loginBtn");
+        loginBtn.disabled = true; // Disable the button
+        loginBtn.innerHTML = "Loading Dashboard..."; // Change text to "Loading..."
+    }
+    </script>
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
 </body>

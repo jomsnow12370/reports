@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Political Campaign Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css"
+    />
+    <style>
+      body {
+        background-color: #f8f9fa;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      .dashboard-header {
+        background-color: #343a40;
+        color: white;
+        padding: 20px 0;
+        margin-bottom: 20px;
+      }
+      .card {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        border-radius: 8px;
+        border: none;
+      }
+      .card-header {
+        background-color: #6c757d;
+        color: white;
+        font-weight: bold;
+        border-radius: 8px 8px 0 0 !important;
+      }
+      .stats-card {
+        text-align: center;
+        background-color: #fff;
+        transition: transform 0.3s;
+      }
+      .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      }
+      .stats-value {
+        font-size: 2rem;
+        font-weight: bold;
+      }
+      .stats-label {
+        font-size: 1rem;
+        color: #6c757d;
+      }
+      .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+      }
+      .nav-tabs .nav-link.active {
+        font-weight: bold;
+        background-color: #e9ecef;
+      }
+      .tab-content {
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 0 0 8px 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .advantage {
+        color: #28a745;
+      }
+      .disadvantage {
+        color: #dc3545;
+      }
+      .filter-section {
+        background-color: #e9ecef;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+      .region-table {
+        font-size: 0.9rem;
+      }
+      .region-table th {
+        background-color: #6c757d;
+        color: white;
+      }
+      .badge-strength {
+        background-color: #28a745;
+      }
+      .badge-weakness {
+        background-color: #dc3545;
+      }
+      .badge-neutral {
+        background-color: #ffc107;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard-header">
+      <div class="container">
+        <h1 class="mb-0">Political Campaign Dashboard</h1>
+        <p class="lead mb-0">
+          Analysis of Political Support Based on Survey Data 2025
+        </p>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Filter Section -->
+      <div class="filter-section">
+        <div class="row">
+          <div class="col-md-5">
+            <label for="municipalitySelect" class="form-label"
+              >Municipality:</label
+            >
+            <select class="form-select" id="municipalitySelect">
+              <option value="">All Municipalities</option>
+              <!-- PHP would populate municipalities here -->
+            </select>
+          </div>
+          <div class="col-md-5">
+            <label for="barangaySelect" class="form-label">Barangay:</label>
+            <select class="form-select" id="barangaySelect" disabled>
+              <option value="">All Barangays</option>
+              <!-- PHP would populate barangays here based on selected municipality -->
+            </select>
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100" id="applyFilters">
+              Apply Filters
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary Stats -->
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="card stats-card">
+            <div class="card-body">
+              <div class="stats-value" id="totalVotersValue">0</div>
+              <div class="stats-label">Total Registered Voters</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card stats-card">
+            <div class="card-body">
+              <div class="stats-value" id="totalHouseholdsValue">0</div>
+              <div class="stats-label">Total Households</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card stats-card">
+            <div class="card-body">
+              <div class="stats-value" id="surveyedValue">0</div>
+              <div class="stats-label">Total Surveyed Voters</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card stats-card">
+            <div class="card-body">
+              <div class="stats-value" id="leadersCountValue">0</div>
+              <div class="stats-label">Total Leaders</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="row">
+        <!-- Left Column - Charts -->
+        <div class="col-lg-8">
+          <!-- Candidate Performance Tabs -->
+          <div class="card mb-4">
+            <div class="card-header">Candidate Performance Analysis</div>
+            <div class="card-body">
+              <ul class="nav nav-tabs" id="candidateTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link active"
+                    id="congressman-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#congressman"
+                    type="button"
+                    role="tab"
+                  >
+                    Congressional Race
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    id="governor-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#governor"
+                    type="button"
+                    role="tab"
+                  >
+                    Gubernatorial Race
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    id="vicegovernor-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#vicegovernor"
+                    type="button"
+                    role="tab"
+                  >
+                    Vice Gubernatorial Race
+                  </button>
+                </li>
+              </ul>
+              <div class="tab-content" id="candidateTabsContent">
+                <!-- Congressional Tab -->
+                <div
+                  class="tab-pane fade show active"
+                  id="congressman"
+                  role="tabpanel"
+                >
+                  <div class="chart-container">
+                    <canvas id="congressionalChart"></canvas>
+                  </div>
+                  <div class="row mt-3">
+                    <div class="col-md-4 text-center">
+                      <div class="card stats-card">
+                        <div class="card-body">
+                          <div class="stats-value" id="laynesTotal">0</div>
+                          <div class="stats-label">Laynes Support</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                      <div class="card stats-card">
+                        <div class="card-body">
+                          <div class="stats-value" id="rodriguezTotal">0</div>
+                          <div class="stats-label">Rodriguez Support</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                      <div class="card stats-card">
+                        <div class="card-body">
+                          <div class="stats-value" id="albertoTotal">0</div>
+                          <div class="stats-label">Alberto Support</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Governor Tab -->
+                <div class="tab-pane fade" id="governor" role="tabpanel">
+                  <div class="chart-container">
+                    <canvas id="governorChart"></canvas>
+                  </div>
+                  <div class="row mt-3">
+                    <div class="col-md-6 text-center">
+                      <div class="card stats-card">
+                        <div class="card-body">
+                          <div class="stats-value" id="bossteTotal">0</div>
+                          <div class="stats-label">BossTe Support</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6 text-center">
+                      <div class="card stats-card">
+                        <div class="card-body">
+                          <div class="stats-value" id="asanzaTotal">0</div>
+                          <div class="stats-label">Asanza Support</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Vice Governor Tab -->
+                <div class="tab-pane fade" id="vicegovernor" role="tabpanel">
+                  <div class="chart-container">
+                    <canvas id="viceGovernorChart"></canvas>
+                  </div>
+                  <div class="row mt-3">
+                    <div class="col-md-6 text-center">
+                      <div class="card stats-card">
+                        <div class="card-body">
+                          <div class="stats-value" id="fernandezTotal">0</div>
+                          <div class="stats-label">Fernandez Support</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6 text-center">
+                      <div class="card stats-card">
+                        <div class="card-body">
+                          <div class="stats-value" id="abundoTotal">0</div>
+                          <div class="stats-label">Abundo Support</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Leaders Distribution -->
+          <div class="card">
+            <div class="card-header">Leaders Distribution</div>
+            <div class="card-body">
+              <div class="chart-container">
+                <canvas id="leadersChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column - Tables and Details -->
+        <div class="col-lg-4">
+          <!-- Leaders Summary -->
+          <div class="card mb-4">
+            <div class="card-header">Leaders Summary</div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-6">
+                  <div class="mb-3">
+                    <div class="stats-label">Municipal Coordinators</div>
+                    <div class="stats-value" id="mcCount">0</div>
+                  </div>
+                  <div class="mb-3">
+                    <div class="stats-label">District Coordinators</div>
+                    <div class="stats-value" id="dcCount">0</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="mb-3">
+                    <div class="stats-label">Barangay Coordinators</div>
+                    <div class="stats-value" id="bcCount">0</div>
+                  </div>
+                  <div class="mb-3">
+                    <div class="stats-label">Ward Leaders</div>
+                    <div class="stats-value" id="wlCount">0</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Performing Areas -->
+          <div class="card mb-4">
+            <div class="card-header">Top Supporting Areas</div>
+            <div class="card-body p-0">
+              <ul class="nav nav-tabs" id="areasTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link active"
+                    id="topcongress-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#topcongress"
+                    type="button"
+                    role="tab"
+                  >
+                    Congress
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    id="topgovernor-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#topgovernor"
+                    type="button"
+                    role="tab"
+                  >
+                    Governor
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    id="topvicegovernor-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#topvicegovernor"
+                    type="button"
+                    role="tab"
+                  >
+                    V.Governor
+                  </button>
+                </li>
+              </ul>
+              <div class="tab-content" id="areasTabsContent">
+                <!-- Top Congressional Areas -->
+                <div
+                  class="tab-pane fade show active"
+                  id="topcongress"
+                  role="tabpanel"
+                >
+                  <div class="table-responsive">
+                    <table
+                      class="table table-striped table-sm region-table mb-0"
+                    >
+                      <thead>
+                        <tr>
+                          <th>Area</th>
+                          <th>Cand.</th>
+                          <th>Support</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="topCongressAreas">
+                        <!-- PHP would populate this table with top areas data -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Top Governor Areas -->
+                <div class="tab-pane fade" id="topgovernor" role="tabpanel">
+                  <div class="table-responsive">
+                    <table
+                      class="table table-striped table-sm region-table mb-0"
+                    >
+                      <thead>
+                        <tr>
+                          <th>Area</th>
+                          <th>Cand.</th>
+                          <th>Support</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="topGovernorAreas">
+                        <!-- PHP would populate this table with top areas data -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Top Vice Governor Areas -->
+                <div class="tab-pane fade" id="topvicegovernor" role="tabpanel">
+                  <div class="table-responsive">
+                    <table
+                      class="table table-striped table-sm region-table mb-0"
+                    >
+                      <thead>
+                        <tr>
+                          <th>Area</th>
+                          <th>Cand.</th>
+                          <th>Support</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="topViceGovernorAreas">
+                        <!-- PHP would populate this table with top areas data -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Areas Needing Attention -->
+          <div class="card">
+            <div class="card-header">Areas Needing Attention</div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-striped table-sm region-table mb-0">
+                  <thead>
+                    <tr>
+                      <th>Area</th>
+                      <th>Position</th>
+                      <th>Support%</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="attentionAreas">
+                    <!-- PHP would populate this table with areas needing attention -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Sample data that would be populated by PHP in the actual implementation
+      const sampleData = {
+        totalVoters: 52378,
+        totalHouseholds: 12845,
+        surveyedVoters: 28942,
+        leaders: {
+          mc: 15,
+          dc: 42,
+          bc: 128,
+          wl: 456,
+        },
+        congressional: {
+          Laynes: 12485,
+          Rodriguez: 9872,
+          Alberto: 4825,
+          Undecided: 1760,
+        },
+        governor: {
+          BossTe: 14256,
+          Asanza: 11789,
+          Undecided: 2897,
+        },
+        viceGovernor: {
+          Fernandez: 13982,
+          Abundo: 12548,
+          Undecided: 2412,
+        },
+        topAreas: {
+          congress: [
+            {
+              area: "San Isidro",
+              candidate: "Laynes",
+              support: "68%",
+              status: "Strength",
+            },
+            {
+              area: "Sta. Rosa",
+              candidate: "Rodriguez",
+              support: "59%",
+              status: "Strength",
+            },
+            {
+              area: "San Antonio",
+              candidate: "Laynes",
+              support: "55%",
+              status: "Strength",
+            },
+            {
+              area: "San Miguel",
+              candidate: "Alberto",
+              support: "52%",
+              status: "Strength",
+            },
+            {
+              area: "Las Piñas",
+              candidate: "Laynes",
+              support: "51%",
+              status: "Strength",
+            },
+          ],
+          governor: [
+            {
+              area: "San Pedro",
+              candidate: "BossTe",
+              support: "72%",
+              status: "Strength",
+            },
+            {
+              area: "San Pablo",
+              candidate: "Asanza",
+              support: "65%",
+              status: "Strength",
+            },
+            {
+              area: "Cabuyao",
+              candidate: "BossTe",
+              support: "58%",
+              status: "Strength",
+            },
+            {
+              area: "Biñan",
+              candidate: "BossTe",
+              support: "57%",
+              status: "Strength",
+            },
+            {
+              area: "Calamba",
+              candidate: "Asanza",
+              support: "55%",
+              status: "Strength",
+            },
+          ],
+          viceGovernor: [
+            {
+              area: "Carmona",
+              candidate: "Fernandez",
+              support: "69%",
+              status: "Strength",
+            },
+            {
+              area: "San Pedro",
+              candidate: "Abundo",
+              support: "64%",
+              status: "Strength",
+            },
+            {
+              area: "Sta. Rosa",
+              candidate: "Fernandez",
+              support: "62%",
+              status: "Strength",
+            },
+            {
+              area: "Biñan",
+              candidate: "Abundo",
+              support: "58%",
+              status: "Strength",
+            },
+            {
+              area: "San Pablo",
+              candidate: "Fernandez",
+              support: "56%",
+              status: "Strength",
+            },
+          ],
+        },
+        attentionAreas: [
+          {
+            area: "Cabuyao",
+            position: "Congress",
+            support: "24%",
+            action: "Increase Visits",
+          },
+          {
+            area: "Calamba",
+            position: "Congress",
+            support: "31%",
+            action: "Media Campaign",
+          },
+          {
+            area: "San Pablo",
+            position: "V.Governor",
+            support: "29%",
+            action: "Leader Recruitment",
+          },
+          {
+            area: "Biñan",
+            position: "Governor",
+            support: "33%",
+            action: "Community Event",
+          },
+          {
+            area: "Carmona",
+            position: "Congress",
+            support: "28%",
+            action: "Door-to-Door",
+          },
+        ],
+        municipalities: [
+          "Biñan",
+          "Cabuyao",
+          "Calamba",
+          "Carmona",
+          "San Pablo",
+          "San Pedro",
+          "Santa Rosa",
+        ],
+        barangays: {
+          Biñan: [
+            "Canlalay",
+            "Langkiwa",
+            "Malaban",
+            "Mamplasan",
+            "San Antonio",
+            "Timbao",
+          ],
+          Cabuyao: [
+            "Banay-Banay",
+            "Bigaa",
+            "Butong",
+            "Casile",
+            "Mamatid",
+            "Marinig",
+          ],
+          Calamba: [
+            "Bagong Kalsada",
+            "Halang",
+            "Mayapa",
+            "Paciano",
+            "Pansol",
+            "Real",
+          ],
+          Carmona: [
+            "Bancal",
+            "Cabilang Baybay",
+            "Lantic",
+            "Maduya",
+            "Milagrosa",
+          ],
+          "San Pablo": [
+            "Dolores",
+            "San Cristobal",
+            "San Lucas",
+            "Santa Maria",
+            "Santiago",
+          ],
+          "San Pedro": [
+            "Landayan",
+            "Nueva",
+            "Pacita",
+            "Poblacion",
+            "San Roque",
+            "United",
+          ],
+          "Santa Rosa": [
+            "Aplaya",
+            "Balibago",
+            "Dila",
+            "Dita",
+            "Ibaba",
+            "Malusak",
+            "Pooc",
+          ],
+        },
+      };
+
+      // DOM is ready
+      $(document).ready(function () {
+        // Update stats values
+        $("#totalVotersValue").text(sampleData.totalVoters.toLocaleString());
+        $("#totalHouseholdsValue").text(
+          sampleData.totalHouseholds.toLocaleString()
+        );
+        $("#surveyedValue").text(sampleData.surveyedVoters.toLocaleString());
+        $("#leadersCountValue").text(
+          (
+            sampleData.leaders.mc +
+            sampleData.leaders.dc +
+            sampleData.leaders.bc +
+            sampleData.leaders.wl
+          ).toLocaleString()
+        );
+
+        // Update leader counts
+        $("#mcCount").text(sampleData.leaders.mc);
+        $("#dcCount").text(sampleData.leaders.dc);
+        $("#bcCount").text(sampleData.leaders.bc);
+        $("#wlCount").text(sampleData.leaders.wl);
+
+        // Update candidate totals
+        $("#laynesTotal").text(
+          sampleData.congressional.Laynes.toLocaleString()
+        );
+        $("#rodriguezTotal").text(
+          sampleData.congressional.Rodriguez.toLocaleString()
+        );
+        $("#albertoTotal").text(
+          sampleData.congressional.Alberto.toLocaleString()
+        );
+        $("#bossteTotal").text(sampleData.governor.BossTe.toLocaleString());
+        $("#asanzaTotal").text(sampleData.governor.Asanza.toLocaleString());
+        $("#fernandezTotal").text(
+          sampleData.viceGovernor.Fernandez.toLocaleString()
+        );
+        $("#abundoTotal").text(sampleData.viceGovernor.Abundo.toLocaleString());
+
+        // Populate municipalities dropdown
+        const municipalitySelect = $("#municipalitySelect");
+        sampleData.municipalities.forEach(function (municipality) {
+          municipalitySelect.append(
+            `<option value="${municipality}">${municipality}</option>`
+          );
+        });
+
+        // Populate barangays based on municipality selection
+        municipalitySelect.change(function () {
+          const selectedMunicipality = $(this).val();
+          const barangaySelect = $("#barangaySelect");
+
+          barangaySelect.empty();
+          barangaySelect.append('<option value="">All Barangays</option>');
+
+          if (selectedMunicipality) {
+            barangaySelect.prop("disabled", false);
+            const barangays = sampleData.barangays[selectedMunicipality] || [];
+            barangays.forEach(function (barangay) {
+              barangaySelect.append(
+                `<option value="${barangay}">${barangay}</option>`
+              );
+            });
+          } else {
+            barangaySelect.prop("disabled", true);
+          }
+        });
+
+        // Populate top areas tables
+        function populateTopAreasTable(elementId, data) {
+          const tableBody = $(`#${elementId}`);
+          tableBody.empty();
+
+          data.forEach(function (item) {
+            let statusClass = "";
+            if (item.status === "Strength") {
+              statusClass = "badge bg-success";
+            } else if (item.status === "Weakness") {
+              statusClass = "badge bg-danger";
+            } else {
+              statusClass = "badge bg-warning text-dark";
+            }
+
+            const row = `
+            <tr>
+              <td>${item.area}</td>
+              <td>${item.candidate}</td>
+              <td>${item.support}</td>
+              <td><span class="${statusClass}">${item.status}</span></td>
+            </tr>
+          `;
+            tableBody.append(row);
+          });
+        }
+
+        populateTopAreasTable("topCongressAreas", sampleData.topAreas.congress);
+        populateTopAreasTable("topGovernorAreas", sampleData.topAreas.governor);
+        populateTopAreasTable(
+          "topViceGovernorAreas",
+          sampleData.topAreas.viceGovernor
+        );
+
+        // Populate attention areas table
+        const attentionTable = $("#attentionAreas");
+        attentionTable.empty();
+
+        sampleData.attentionAreas.forEach(function (item) {
+          const row = `
+          <tr>
+            <td>${item.area}</td>
+            <td>${item.position}</td>
+            <td><span class="text-danger fw-bold">${item.support}</span></td>
+            <td><span class="badge bg-primary">${item.action}</span></td>
+          </tr>
+        `;
+          attentionTable.append(row);
+        });
+
+        // Create charts
+        // Congressional Chart
+        const congressionalCtx = document
+          .getElementById("congressionalChart")
+          .getContext("2d");
+        const congressionalChart = new Chart(congressionalCtx, {
+          type: "pie",
+          data: {
+            labels: ["Laynes", "Rodriguez", "Alberto", "Undecided"],
+            datasets: [
+              {
+                data: [
+                  sampleData.congressional.Laynes,
+                  sampleData.congressional.Rodriguez,
+                  sampleData.congressional.Alberto,
+                  sampleData.congressional.Undecided,
+                ],
+                backgroundColor: ["#4e73df", "#1cc88a", "#36b9cc", "#f6c23e"],
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+              },
+              title: {
+                display: true,
+                text: "Congressional Race Support Distribution",
+              },
+            },
+          },
+        });
+
+        // Governor Chart
+        const governorCtx = document
+          .getElementById("governorChart")
+          .getContext("2d");
+        const governorChart = new Chart(governorCtx, {
+          type: "pie",
+          data: {
+            labels: ["BossTe", "Asanza", "Undecided"],
+            datasets: [
+              {
+                data: [
+                  sampleData.governor.BossTe,
+                  sampleData.governor.Asanza,
+                  sampleData.governor.Undecided,
+                ],
+                backgroundColor: ["#4e73df", "#1cc88a", "#f6c23e"],
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+              },
+              title: {
+                display: true,
+                text: "Gubernatorial Race Support Distribution",
+              },
+            },
+          },
+        });
+
+        // Vice Governor Chart
+        const viceGovernorCtx = document
+          .getElementById("viceGovernorChart")
+          .getContext("2d");
+        const viceGovernorChart = new Chart(viceGovernorCtx, {
+          type: "pie",
+          data: {
+            labels: ["Fernandez", "Abundo", "Undecided"],
+            datasets: [
+              {
+                data: [
+                  sampleData.viceGovernor.Fernandez,
+                  sampleData.viceGovernor.Abundo,
+                  sampleData.viceGovernor.Undecided,
+                ],
+                backgroundColor: ["#4e73df", "#1cc88a", "#f6c23e"],
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+              },
+              title: {
+                display: true,
+                text: "Vice Gubernatorial Race Support Distribution",
+              },
+            },
+          },
+        });
+
+        // Leaders Chart
+        const leadersCtx = document
+          .getElementById("leadersChart")
+          .getContext("2d");
+        const leadersChart = new Chart(leadersCtx, {
+          type: "bar",
+          data: {
+            labels: [
+              "Municipal Coordinators",
+              "District Coordinators",
+              "Barangay Coordinators",
+              "Ward Leaders",
+            ],
+            datasets: [
+              {
+                label: "Number of Leaders",
+                data: [
+                  sampleData.leaders.mc,
+                  sampleData.leaders.dc,
+                  sampleData.leaders.bc,
+                  sampleData.leaders.wl,
+                ],
+                backgroundColor: ["#4e73df", "#1cc88a", "#36b9cc", "#f6c23e"],
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false,
+              },
+              title: {
+                display: true,
+                text: "Leaders by Category",
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+
+        // Handle filter button click (in a real implementation, this would trigger AJAX to reload data)
+        $("#applyFilters").click(function () {
+          const municipality = $("#municipalitySelect").val();
+          const barangay = $("#barangaySelect").val();
+
+          alert(
+            `Filters applied! Municipality: ${
+              municipality || "All"
+            }, Barangay: ${barangay || "All"}`
+          );
+          // In actual implementation, this would trigger an AJAX call to refresh data based on selection
+        });
+      });
+    </script>
+  </body>
+</html>

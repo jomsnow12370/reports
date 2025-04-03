@@ -701,27 +701,27 @@ $vgov_blanks = $household_total - $total_warding_vgov;
                 </div>
                 <div class="modal-body">
                     <?php 
-                // Fetch all barangays data
-              $r = get_array("SELECT barangay, households, id FROM barangays WHERE id IS NOT NULL $munquery $brgyquery");
+                    // Fetch all barangays data
+                        $r = get_array("SELECT barangay, households, id FROM barangays WHERE id IS NOT NULL $munquery $brgyquery");
 
-                // Initialize counters for turnouts
-                $total_barangays = count($r);
-                $submitted_barangays = 0;
+                        // Initialize counters for turnouts
+                        $total_barangays = count($r);
+                        $submitted_barangays = 0;
 
-                //Count barangays with submitted households
-                foreach ($r as $value) {
-                    $brgyid = $value[2];
-                    $wardedhouseholds = get_value("SELECT COUNT(*) FROM head_household 
-                        INNER JOIN v_info ON v_info.v_id = head_household.fh_v_id 
-                        INNER JOIN barangays ON barangays.id = v_info.barangayId 
-                        WHERE v_info.record_type = 1 $munquery $brgyquery2")[0];
+                        //Count barangays with submitted households
+                        foreach ($r as $value) {
+                            $brgyid = $value[2];
+                            $wardedhouseholds = get_value("SELECT COUNT(*) FROM head_household 
+                                INNER JOIN v_info ON v_info.v_id = head_household.fh_v_id 
+                                INNER JOIN barangays ON barangays.id = v_info.barangayId 
+                                WHERE v_info.record_type = 1 $munquery $brgyquery2")[0];
 
-                    // Check if households were submitted
-                    if ($wardedhouseholds > 0) {
-                        $submitted_barangays++;
-                    }
-                }
-                ?>
+                            // Check if households were submitted
+                            if ($wardedhouseholds > 0) {
+                                $submitted_barangays++;
+                            }
+                        }
+                        ?>
 
                     <!-- Show total turnouts -->
                     <h5>Warding Turnouts</h5>
@@ -738,7 +738,7 @@ $vgov_blanks = $household_total - $total_warding_vgov;
                                 <th>Voters</th>
                                 <th>Households</th>
                             </thead>
-                            <tbody id="tbody">
+                            <!-- <tbody>
                                 <?php 
                             foreach ($r as $key => $value) {
                                 $brgyid = $value[2];
@@ -764,7 +764,7 @@ $vgov_blanks = $household_total - $total_warding_vgov;
                                 <?php
                             }
                             ?>
-                            </tbody>
+                            </tbody> -->
                         </table>
                     </div>
                 </div>
@@ -895,9 +895,6 @@ $vgov_blanks = $household_total - $total_warding_vgov;
     }
     </script>
     <!-- Bootstrap & jQuery JS (optional) -->
-
-
-
     <script>
     document.getElementById('municipalityDropdown').addEventListener('change', function() {
         var municipalityId = this.value;

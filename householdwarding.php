@@ -208,8 +208,8 @@ $vgov_blanks = $household_total - $total_warding_vgov;
 </head>
 
 <body class="bg-dark">
-    <div class="container mt-4">
-        <h1 class="text-light text-center">2025 Catseye Data Report</h1>
+    <div class="container-fluid mt-4">
+        <h1 class="text-light text-center">2025 Cat's-eye Warding Report</h1>
         <!-- Total Voters Card -->
         <h5 class="text-light mt-4"><strong>Congressman </strong></h5>
         <div class="row">
