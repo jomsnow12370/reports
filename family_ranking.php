@@ -38,7 +38,7 @@ if($brgyId != "") {
     $brgyquery2 = " AND id = '$brgyId'";
 }else{
  $brgyquery2 = "";
-}
+}               
 
 function count_leaders($c, $leader_type, $munquery, $brgyquery) {
     $query = "SELECT COUNT(*) from leaders 
@@ -308,7 +308,6 @@ $vgov_blanks = $household_total - $total_warding_vgov;
                     role="tab" aria-controls="families" aria-selected="false">Turnouts</button>
             </li>
         </ul>
-
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade show active" id="maindashboard" role="tabpanel"
                 aria-labelledby="maindashboard-tab">
@@ -330,7 +329,6 @@ $vgov_blanks = $household_total - $total_warding_vgov;
                 <!-- Total Voters Card -->
                 <div class="row">
                     <div class="col-lg-4 mb-4">
-
                         <div class="card card-voters " id="voterCard" style="cursor: pointer;" data-bs-toggle="modal"
                             data-bs-target="#municipalityModal">
                             <div class="card-body">
@@ -339,24 +337,24 @@ $vgov_blanks = $household_total - $total_warding_vgov;
                                         <div class="text-xs fw-bold text-primary text-uppercase mb-1">
                                             Voters
                                             <?php 
-                                                        // if($mun != "") {
-                                                        //     if($brgyId != "")
-                                                        //     {
-                                                        //         echo " of $brgyName, $mun <br><div class='text-muted' style='font-size:16px;font-weight:600'> <i>" . count($precinct_totals) . ' Precincts</i> </div>';
-                                                        //     }
-                                                        //     else{
-                                                        //         echo " of $mun <br><div class='text-muted' style='font-size:16px;font-weight:600'> <i>" . count($barangay_totals) . ' Barangays</i> </div>';
-                                                        //     }
-                                                          
-                                                        // }
-                                                         ?>
+                                            // if($mun != "") {
+                                            //     if($brgyId != "")
+                                            //     {
+                                            //         echo " of $brgyName, $mun <br><div class='text-muted' style='font-size:16px;font-weight:600'> <i>" . count($precinct_totals) . ' Precincts</i> </div>';
+                                            //     }
+                                            //     else{
+                                            //         echo " of $mun <br><div class='text-muted' style='font-size:16px;font-weight:600'> <i>" . count($barangay_totals) . ' Barangays</i> </div>';
+                                            //     }
+                                                
+                                            // }
+                                            ?>
                                         </div>
                                         <div class="h5 mb-0 fw-bold">
                                             <?php 
-                                                        // Get the total number of voters
-                                                        $total_voters = get_value("SELECT COUNT(*) from v_info INNER JOIN barangays ON barangays.id = v_info.barangayId WHERE v_info.record_type = 1 $munquery $brgyquery");              
-                                                        echo number_format($total_voters[0]);
-                                                        ?>
+                                            // Get the total number of voters
+                                            $total_voters = get_value("SELECT COUNT(*) from v_info INNER JOIN barangays ON barangays.id = v_info.barangayId WHERE v_info.record_type = 1 $munquery $brgyquery");              
+                                            echo number_format($total_voters[0]);
+                                            ?>
                                         </div>
                                     </div>
                                     <div class="col-auto">
@@ -373,52 +371,6 @@ $vgov_blanks = $household_total - $total_warding_vgov;
                                             echo "municipality";
                                         }
                                         ?></i></small>
-                            </div>
-                        </div>
-
-
-                    </div>
-                    <div class="col-lg-4 mb-4">
-                        <div class="card card-voters ">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs fw-bold text-primary text-uppercase mb-1">
-                                            Leaders(BC,WL)
-                                        </div>
-                                        <div class="h5 mb-0 fw-bold">
-                                            <?php echo number_format($total_bc + $total_wl); ?>
-                                        </div>
-                                        <!-- <div class="mt-2 text-xs text-success">
-                                    <i class="fas fa-arrow-up me-1"></i>
-                                    <span>3.5% increase since last month</span>
-                                </div> -->
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-users voter-icon"></i>
-                                    </div>
-                                </div>
-                                <!-- Category Breakdown -->
-                                <hr class="category-divider">
-                                <div class="row mt-2">
-                                    <div class="col-12">
-
-                                        <div class="d-flex flex-wrap mb-2">
-                                            <div class="category-pill mc-pill me-2 mb-1">
-                                                MC: <?php echo number_format($total_mc); ?>
-                                            </div>
-                                            <div class="category-pill dc-pill me-2 mb-1">
-                                                DC: <?php echo number_format($total_dc); ?>
-                                            </div>
-                                            <div class="category-pill bc-pill me-2 mb-1">
-                                                BC: <?php echo number_format($total_bc); ?>
-                                            </div>
-                                            <div class="category-pill wl-pill me-2 mb-1">
-                                                WL: <?php echo number_format($total_wl); ?>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -449,7 +401,6 @@ $vgov_blanks = $household_total - $total_warding_vgov;
                                 <div class="row mt-2">
                                     <div class="col-12">
                                         <div class="d-flex flex-wrap mb-2">
-
                                             <div class="category-pill dc-pill me-2 mb-1">
                                                 Household Members: <?php echo number_format($household_member); ?>
                                             </div>
@@ -457,7 +408,43 @@ $vgov_blanks = $household_total - $total_warding_vgov;
                                                 Total Warded Voters: <?php echo number_format($household_total); ?>
                                             </div>
                                         </div>
-
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card mb-4">
+                            <div class="card-header">Leaders Summary</div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <div class="stats-label">Municipal Coordinators</div>
+                                            <div class="stats-value" id="mcCount">
+                                                <?php echo number_format($total_mc); ?>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="stats-label">District Coordinators</div>
+                                            <div class="stats-value" id="dcCount">
+                                                <?php echo number_format($total_dc); ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <div class="stats-label">Barangay Coordinators</div>
+                                            <div class="stats-value" id="bcCount">
+                                                <?php echo number_format($total_bc); ?>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="stats-label">Ward Leaders</div>
+                                            <div class="stats-value" id="wlCount">
+                                                <?php echo number_format($total_wl); ?>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

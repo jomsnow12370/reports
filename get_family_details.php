@@ -10,50 +10,56 @@ $brgyquery = isset($_GET['brgyquery']) ? $_GET['brgyquery'] : '';
 $lastname = mysqli_real_escape_string($c, $lastname);
 
 // // Now you can use this PHP variable to query your database
-$query = get_array("SELECT barangay, COUNT(*) as cnt from v_info INNER JOIN barangays ON barangays.id = v_info.barangayId WHERE record_type = 1 AND v_lname = '$lastname' $munquery GROUP BY barangay");
+$query = get_array("SELECT municipality, barangay, COUNT(*) as cnt from v_info INNER JOIN barangays ON barangays.id = v_info.barangayId WHERE record_type = 1 AND v_lname = '$lastname' $munquery GROUP BY barangay ORDER BY COUNT(*) DESC");
 // $result = mysqli_query($c, $query);
 //echo $munquery . '<br>' . $brgyquery;
 
 if($brgyquery == ""){
 ?>
-<table class="table table-bordered">
-    <thead>
-        <th>#</th>
-        <th>Barangay</th>
-        <th>Total</th>
-        <th>Warded</th>
-    </thead>
-    <tbody>
-        <?php
+<div class="table-responsive" style="max-height:60vh">
+    <table class="table table-bordered">
+        <thead>
+            <th>#</th>
+            <th>Municipality</th>
+            <th>Barangay</th>
+            <th>Total</th>
+            <th>Warded</th>
+        </thead>
+        <tbody>
+            <?php
 foreach ($query as $key => $value) {
-    $brgy = $value["barangay"];
+     $brgy = $value["barangay"];
+     $mun = $value["municipality"];
+    
      $mnames = get_value("SELECT COUNT(*) AS cnt FROM v_info INNER JOIN barangays ON barangays.id = v_info.barangayId WHERE record_type = 1 AND v_mname = '$lastname' $munquery AND barangay = '$brgy'")[0];
-
-      $household = get_value("SELECT COUNT(*) from head_household INNER JOIN v_info ON v_info.v_id = head_household.fh_v_id INNER JOIN barangays ON barangays.id = v_info.barangayId WHERE (TRIM(v_lname) = '$lastname' OR TRIM(v_mname) = '$lastname') and record_type = 1 $munquery AND barangay = '$brgy'")[0];
-      $members = get_value("SELECT COUNT(*) from household_warding INNER JOIN v_info ON v_info.v_id = household_warding.mem_v_id INNER JOIN barangays ON barangays.id = v_info.barangayId WHERE (TRIM(v_lname) = '$lastname' OR TRIM(v_mname) = '$lastname') and record_type = 1 $munquery AND barangay = '$brgy'")[0];
+     $household = get_value("SELECT COUNT(*) from head_household INNER JOIN v_info ON v_info.v_id = head_household.fh_v_id INNER JOIN barangays ON barangays.id = v_info.barangayId WHERE (TRIM(v_lname) = '$lastname' OR TRIM(v_mname) = '$lastname') and record_type = 1 $munquery AND barangay = '$brgy'")[0];
+     $members = get_value("SELECT COUNT(*) from household_warding INNER JOIN v_info ON v_info.v_id = household_warding.mem_v_id INNER JOIN barangays ON barangays.id = v_info.barangayId WHERE (TRIM(v_lname) = '$lastname' OR TRIM(v_mname) = '$lastname') and record_type = 1 $munquery AND barangay = '$brgy'")[0];
                         
     ?>
-        <tr>
-            <td>
-                <?php echo $key + 1;?>
-            </td>
-            <td>
-                <?php echo $value["barangay"];?>
-            </td>
-            <td><?php echo $value["cnt"] + $mnames;?></td>
-            <td><?php echo $household + $members?></td>
-        </tr>
-        <?php
+            <tr>
+                <td>
+                    <?php echo $key + 1;?>
+                </td>
+                <td>
+                    <?php echo $value["municipality"];?>
+                </td>
+                <td>
+                    <?php echo $value["barangay"];?>
+                </td>
+                <td><?php echo $value["cnt"] + $mnames;?></td>
+                <td><?php echo $household + $members?></td>
+            </tr>
+            <?php
     }
     ?>
-    </tbody>
-</table>
+        </tbody>
+    </table>
+</div>
 <?php
 }
 else{
     ?>
 <div class="table-responsive" style="max-height:60vh">
-
     <table class="table table-bordered">
         <thead>
             <th>#</th>
